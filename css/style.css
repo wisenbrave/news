@@ -118,7 +118,6 @@ details li .meta { display: block; margin: 1px 0 4px; }
 
 /* 사설 */
 .paper h3 { margin: 22px 0 0; font-size: 0.875rem; color: var(--muted); }
-.mini { margin-left: 8px; min-height: 36px; padding: 0 4px; border: 0; background: none; font-size: 0.8125rem; color: var(--accent); }
 .paper .meta { margin-top: 0; }
 .excerpt { margin: 6px 0 2px; font-size: 0.9375rem; line-height: 1.6; color: var(--sub); }
 

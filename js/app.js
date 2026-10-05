@@ -212,8 +212,8 @@ function editorialView(list) {
       <ul class="list">${items.map(a => {
         const title = a.title.replace(/\s*\[사설\]\s*/, ' ').trim();
         const lead = a.excerpt ? `<p class="excerpt">${esc(a.excerpt)}</p>` : '';
-        return `<li class="item">${link({ ...a, title })}${lead}<div class="meta">${esc(timeOf(a))}
-          <button class="mini" type="button" data-bk="${esc(title)}">BIG KINDS에서 더 검색</button></div></li>`;
+        const time = timeOf(a) ? `<div class="meta">${esc(timeOf(a))}</div>` : '';
+        return `<li class="item">${link({ ...a, title })}${lead}${time}</li>`;
       }).join('')}</ul>
     </section>`).join('');
 }
@@ -379,9 +379,6 @@ $('tabs').addEventListener('click', e => {
 $('show-all').addEventListener('click', () => { state.showAll = !state.showAll; render(); });
 $('refresh').addEventListener('click', loadNews);
 $('bigkinds').addEventListener('click', () => openBigKinds(state.query.trim()));
-$('list').addEventListener('click', e => {
-  if (e.target.dataset.bk) openBigKinds(e.target.dataset.bk);
-});
 
 wide.addEventListener('change', render); // 창 크기를 바꾸면 보여줄 개수도 다시 맞춤
 render();
