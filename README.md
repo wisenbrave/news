@@ -92,6 +92,7 @@ js/app.js               검색·탭·기사 묶기·중요도 계산·화면 그
 api/news.js             RSS 수집 (feedSources) → 오늘 기사 JSON, 5분 캐시
 manifest.webmanifest    홈 화면 설치 정보
 icons/                  앱 아이콘
+docs/intro.html         앱 소개 페이지 (배포 시 /docs/intro.html)
 dev-server.js           로컬 실행용 서버
 vercel.json             Vercel 설정
 ```

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="낚시성·흥행성 기사 대신 사설과 편집국 판단을 근거로 오늘의 주요 뉴스를 고르는 개인용 뉴스 앱 '오늘뉴스' 소개">
+<title>오늘뉴스 소개</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap">
+<style>
+  /* 레이아웃: 읽기 좋은 폭의 한 단. 비교 부분만 넓은 화면에서 2단 */
+  :root {
+    --bg: #ffffff;
+    --fg: #16181d;
+    --muted: #5d6270;
+    --line: #e6e8ec;
+    --soft: #f3f4f7;
+    --accent: #1f4fd1;
+    --accent-soft: #eaf0fd;
+    --old: #a3412a;
+    --font: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0d0e11; --fg: #eceef2; --muted: #a0a5b2; --line: #2a2d35; --soft: #1a1c22;
+      --accent: #8fb0ff; --accent-soft: #1b2440; --old: #f0a08c; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d0e11; --fg: #eceef2; --muted: #a0a5b2; --line: #2a2d35; --soft: #1a1c22;
+    --accent: #8fb0ff; --accent-soft: #1b2440; --old: #f0a08c; color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 400 17px/1.75 var(--font); word-break: keep-all; overflow-wrap: anywhere; }
+  .wrap { max-width: 760px; margin: 0 auto; padding-inline: 20px; }
+  section { padding-block: 48px; border-top: 1px solid var(--line); }
+  h1, h2 { margin: 0; letter-spacing: -0.02em; line-height: 1.35; text-wrap: balance; }
+  h2 { font-size: 1.5rem; margin-bottom: 20px; }
+  p { margin: 0; }
+  .muted { color: var(--muted); }
+
+  .hero { padding-block: 64px 48px; }
+  .hero .name { font-size: 1rem; font-weight: 600; color: var(--accent); margin-bottom: 14px; }
+  .hero h1 { font-size: clamp(1.9rem, 6vw, 2.75rem); margin-bottom: 18px; }
+  .hero p { font-size: 1.125rem; color: var(--muted); }
+
+  /* 문제 → 해결 비교 */
+  .compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .panel { padding: 20px; border-radius: 12px; background: var(--soft); min-width: 0; }
+  .panel.new { background: var(--accent-soft); }
+  .panel h3 { margin: 0 0 12px; font-size: 1rem; }
+  .panel.old h3 { color: var(--old); }
+  .panel.new h3 { color: var(--accent); }
+  .panel ol { margin: 0; padding-left: 1.2em; }
+  .panel li + li { margin-top: 10px; }
+  .panel li { line-height: 1.5; }
+  .panel small { display: block; font-size: 0.8125rem; color: var(--muted); }
+  .point { margin-top: 20px; font-size: 1.0625rem; }
+  .point b { color: var(--accent); }
+
+  /* 고르는 기준 */
+  .rules { list-style: none; margin: 0; padding: 0; }
+  .rules li { display: flex; gap: 16px; align-items: baseline; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .rules li:first-child { border-top: 1px solid var(--line); }
+  .rules b { flex: none; width: 5.5em; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .note { margin-top: 16px; font-size: 0.9375rem; color: var(--muted); }
+
+  /* 기능 */
+  .features { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; }
+  .features b { display: block; }
+  .features span { color: var(--muted); }
+
+  footer { padding-block: 32px 48px; border-top: 1px solid var(--line); font-size: 0.875rem; color: var(--muted); }
+
+  @media (max-width: 640px) {
+    .compare { grid-template-columns: minmax(0, 1fr); }
+    .rules li { flex-direction: column; gap: 2px; }
+  }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="hero">
+    <p class="name">오늘뉴스</p>
+    <h1>낚시 기사에 묻힌 오늘의 중요한 뉴스를, 5분 안에.</h1>
+    <p>13개 언론사의 기사를 모아 같은 사건끼리 묶고, 신문사들이 중요하다고 판단한 뉴스부터 보여줍니다.</p>
+  </div>
+
+  <section>
+    <h2>같은 날, 같은 기사를 다르게 줄 세우면</h2>
+    <div class="compare">
+      <div class="panel old">
+        <h3>많이 보도된 순</h3>
+        <ol>
+          <li>북한 지뢰 제거 작전<small>7개 언론사</small></li>
+          <li>KT 정규시즌 우승<small>스포츠</small></li>
+          <li>화물차 식당 돌진 사고<small>사건사고</small></li>
+        </ol>
+      </div>
+      <div class="panel new">
+        <h3>오늘뉴스</h3>
+        <ol>
+          <li>금융권 AI 해킹<small>사설 4곳 · 보수·진보 모두 보도</small></li>
+          <li>은행 보안 등급의 허상<small>연합 헤드라인 · 사설 1곳</small></li>
+          <li>북한군 지뢰 최종 판단<small>9개 언론사</small></li>
+        </ol>
+      </div>
+    </div>
+    <p class="point">신문 4곳이 모두 사설로 다룬 '금융권 AI 해킹'은 많이 보도된 순으로는 14위였습니다. 오늘뉴스에서는 <b>1위</b>입니다.</p>
+    <p class="note">2026년 10월 5일 실제 수집 데이터</p>
+  </section>
+
+  <section>
+    <h2>무엇을 기준으로 고르나요</h2>
+    <ul class="rules">
+      <li><b>사설</b><span>신문사가 사설로 다룬 주제는 그날 가장 중요하다고 판단한 주제입니다.</span></li>
+      <li><b>헤드라인</b><span>연합뉴스 편집국이 고른 톱 기사를 반영합니다.</span></li>
+      <li><b>양쪽 보도</b><span>보수·진보 매체가 모두 다룬 사건을 앞에 둡니다.</span></li>
+      <li><b>보도 범위</b><span>여러 주요 언론사가 함께 다룬 사건일수록 위로 올라갑니다.</span></li>
+    </ul>
+    <p class="note">조회수와 클릭수는 쓰지 않습니다. 연예·스포츠 섹션은 처음부터 받지 않습니다.</p>
+  </section>
+
+  <section>
+    <h2>이렇게 볼 수 있어요</h2>
+    <ul class="features">
+      <li><b>같은 사건은 한 줄로</b><span>여러 언론사의 같은 기사를 묶어, 목록이 짧아집니다.</span></li>
+      <li><b>왜 중요한지 표시</b><span>"사설 4곳 · 6개 언론사"처럼 근거가 함께 보입니다.</span></li>
+      <li><b>오늘의 핵심어</b><span>그날의 주요 이슈를 버튼 하나로 모아 봅니다.</span></li>
+      <li><b>사설 모아보기</b><span>신문사별 사설과 첫 문단을 광고 없이 읽습니다.</span></li>
+      <li><b>광고·가입 없음</b><span>폰과 PC 모두에서 가볍게 열리고, 다크 모드도 됩니다.</span></li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">기사 제목과 링크만 보여주며, 기사 저작권은 각 언론사에 있습니다.</div>
+</footer>
+</body>
+</html>
