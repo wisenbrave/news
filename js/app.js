@@ -229,6 +229,12 @@ function editorialView(list) {
     </section>`).join('');
 }
 
+// 이슈 묶음이 어느 분야 탭에 속하는지: 대표 기사의 분야이거나, 묶인 기사 3분의 1 이상이 그 분야
+function groupInTab(group, tab) {
+  const all = [group.lead, ...group.related];
+  return group.lead.category === tab || all.filter(a => a.category === tab).length * 3 >= all.length;
+}
+
 function render() {
   const terms = searchTerms();
   const quickWords = QUICK_SEARCHES[state.query.trim()]; // 빠른 검색 버튼이면 연결된 단어 중 하나만 맞아도 표시
@@ -249,13 +255,16 @@ function render() {
   let heading = state.tab;
   $('show-all').hidden = true;
 
-  if (state.tab === '오늘' && !terms.length) {
-    const groups = state.showAll ? state.groups : [...state.groups].sort((a, b) => b.rating.score - a.rating.score).slice(0, TOP_NEWS_COUNT);
-    heading = state.showAll ? '오늘 전체 뉴스' : '오늘의 주요 뉴스';
+  if (state.tab !== EDITORIAL && !terms.length) {
+    // '오늘'과 분야 탭 모두 같은 이슈 묶음·중요도 점수로 주요 뉴스를 먼저 보여준다
+    const tabGroups = state.tab === '오늘' ? state.groups : state.groups.filter(g => groupInTab(g, state.tab));
+    const groups = state.showAll ? tabGroups : [...tabGroups].sort((a, b) => b.rating.score - a.rating.score).slice(0, TOP_NEWS_COUNT);
+    const name = state.tab === '오늘' ? '오늘' : state.tab;
+    heading = state.showAll ? `${name} 전체 뉴스` : state.tab === '오늘' ? '오늘의 주요 뉴스' : `${name} 주요 뉴스`;
     html = groups.length ? `<ul class="list">${groups.map(groupItem).join('')}</ul>` : '';
-    if (state.groups.length > TOP_NEWS_COUNT) {
+    if (tabGroups.length > TOP_NEWS_COUNT) {
       $('show-all').hidden = false;
-      $('show-all').textContent = state.showAll ? '주요 뉴스만 보기' : `전체 오늘 뉴스 보기 (${list.length}건)`;
+      $('show-all').textContent = state.showAll ? '주요 뉴스만 보기' : `전체 ${name} 뉴스 보기 (${list.length}건)`;
     }
   } else if (state.tab === EDITORIAL) {
     html = list.length ? editorialView(list) : '';

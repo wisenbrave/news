@@ -64,7 +64,7 @@ npm run dev
 
 ## 카테고리 키워드 수정 방법
 
-`js/config.js`의 `CATEGORY_KEYWORDS`를 고칩니다. 제목에 들어간 키워드가 가장 많은 분야로 분류되고,
+`js/config.js`의 `CATEGORY_KEYWORDS`를 고칩니다. '반면교사'의 '교사'처럼 다른 단어의 일부로 잘못 걸리는 경우는 `KEYWORD_EXCEPTIONS`에 그 단어를 추가합니다. 제목에 들어간 키워드가 가장 많은 분야로 분류되고,
 동점이면 피드의 `defaultCategory`가 우선합니다. 같은 파일에서 빠른 검색어(`QUICK_SEARCHES`),
 제외할 제목 꼬리표(`EXCLUDE_TITLE_PREFIXES`), 기사 묶기 기준(`GROUP_SIMILARITY`, `EVIDENCE_SIMILARITY`), 주요 뉴스 개수(`TOP_NEWS_COUNT`)도 바꿀 수 있습니다.
 

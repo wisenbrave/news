@@ -1,6 +1,6 @@
 // /api/news — 언론사 RSS를 모아 "오늘(한국시간) 기사"의 제목·언론사·시간·링크만 돌려준다.
 // 기사 본문은 저장하거나 전달하지 않는다.
-import { CATEGORY_KEYWORDS, EDITORIAL, OTHER, EXCLUDE_TITLE_PREFIXES } from '../js/config.js';
+import { CATEGORY_KEYWORDS, KEYWORD_EXCEPTIONS, EDITORIAL, OTHER, EXCLUDE_TITLE_PREFIXES } from '../js/config.js';
 
 // 언론사 추가는 여기에 한 줄만 추가하면 된다.
 //   url: 피드 주소 (여러 개면 배열) — 흥행성 기사를 줄이려고 '전체' 대신 정치·경제·사회·국제 섹션 피드를 쓴다
@@ -188,10 +188,11 @@ function parseDate(s) {
 // 제목 키워드로 분야를 정한다. 키워드가 가장 많이 맞는 분야, 동점이면 언론사 섹션(defaultCategory) 우선.
 export function classify(title, defaultCategory = OTHER) {
   if (defaultCategory === EDITORIAL || title.includes('[사설]')) return EDITORIAL;
+  const text = KEYWORD_EXCEPTIONS.reduce((t, w) => t.replaceAll(w, ' '), title);
   let best = defaultCategory;
   let bestScore = 0;
   for (const [category, words] of Object.entries(CATEGORY_KEYWORDS)) {
-    let score = words.filter(w => hasWord(title, w)).length;
+    let score = words.filter(w => hasWord(text, w)).length;
     if (category === defaultCategory) score += 0.5;
     if (score > bestScore) [best, bestScore] = [category, score];
   }

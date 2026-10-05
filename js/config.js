@@ -12,9 +12,13 @@ export const CATEGORY_KEYWORDS = {
     '교원', '학부모', '유치원', '어린이집', '늘봄'],
 };
 
+// 키워드가 다른 단어의 일부로 잘못 걸리는 경우: 분류 전에 이 단어들은 지우고 본다
+// (예: '반면교사'의 교사, '경고등'의 고등, '가입시'의 입시, '대학병원'의 대학)
+export const KEYWORD_EXCEPTIONS = ['반면교사', '살인교사', '교사범', '경고등', '고등법원', '가입시', '대학병원'];
+
 export const EDITORIAL = '사설';   // 사설 카테고리 이름
 export const OTHER = '기타';       // 어느 분야에도 속하지 않는 기사
-export const TABS = ['오늘', '경제·금융', '과학·기술', '교육', EDITORIAL];
+export const TABS = ['오늘', EDITORIAL, '경제·금융', '과학·기술', '교육'];
 export const INTEREST_CATEGORIES = ['경제·금융', '과학·기술', '교육']; // 주요 뉴스 점수 가산
 
 // 빠른 검색 버튼: { 버튼 이름: [제목에서 찾을 단어들] } — 단어 중 하나라도 들어간 기사를 보여준다.
@@ -45,4 +49,4 @@ export const GROUP_MAX_HOURS = 12;
 export const EVIDENCE_SIMILARITY = 0.12;
 export const EVIDENCE_LINK = 0.1;
 
-export const TOP_NEWS_COUNT = 15; // '오늘' 탭에 먼저 보여줄 주요 뉴스 수
+export const TOP_NEWS_COUNT = 15; // '오늘'·분야 탭에 먼저 보여줄 주요 뉴스 수
