@@ -338,6 +338,23 @@ function setQuery(q) {
 
 // ---------- 이벤트 ----------
 
+// 다크·화이트 모드 전환 (기본 화이트, 고른 모드는 이 기기에 기억)
+function applyTheme(theme) {
+  const dark = theme === 'dark';
+  if (dark) document.documentElement.dataset.theme = 'dark';
+  else delete document.documentElement.dataset.theme;
+  $('theme').textContent = dark ? '☀' : '☾';
+  $('theme').setAttribute('aria-label', dark ? '화이트 모드로 바꾸기' : '다크 모드로 바꾸기');
+  $('theme').title = dark ? '화이트 모드' : '다크 모드';
+  document.querySelector('meta[name="theme-color"]').content = dark ? '#0b0b0c' : '#ffffff';
+}
+applyTheme(document.documentElement.dataset.theme);
+$('theme').addEventListener('click', () => {
+  const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try { localStorage.setItem('theme', next); } catch { /* 저장이 막힌 브라우저에서는 이번 방문에만 적용 */ }
+});
+
 $('today').textContent = kstDate.format(new Date());
 $('gold').href = GOLD_URL;
 $('quick').innerHTML = '<span class="row-label">관심 기술</span>' + Object.keys(QUICK_SEARCHES).map(w => `<button type="button">${esc(w)}</button>`).join('');
