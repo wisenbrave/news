@@ -112,6 +112,8 @@ export async function collectNews(sources) {
         publishedAt: item.time === null ? null : new Date(item.time).toISOString(),
         category,
         link: item.link,
+        // 사설은 RSS에 공식으로 들어 있는 첫 문단(약 200자)을 함께 전달한다. 전문은 가져오지 않는다.
+        ...(category === EDITORIAL && item.summary ? { excerpt: excerpt(item.summary) } : {}),
       });
     }
   });
@@ -138,7 +140,7 @@ async function fetchFeed(src) {
   return parseFeed(await res.text());
 }
 
-// 아주 작은 RSS/Atom 파서: 제목·링크·날짜만 꺼낸다. (summary는 연합 헤드라인 추출에만 쓰고 전달하지 않음)
+// 아주 작은 RSS/Atom 파서: 제목·링크·날짜와 RSS 요약문(summary)을 꺼낸다.
 export function parseFeed(xml) {
   if (!/<(rss|feed|rdf:RDF)[\s>]/.test(xml)) throw new Error('RSS 형식이 아님');
   const blocks = xml.match(/<(item|entry)[\s>][\s\S]*?<\/(item|entry)>/g) || [];
@@ -146,7 +148,7 @@ export function parseFeed(xml) {
     title: tag(b, 'title'),
     link: tag(b, 'link') || (b.match(/<link[^>]*href="([^"]+)"/) || [])[1] || '',
     time: parseDate(tag(b, 'pubDate') || tag(b, 'dc:date') || tag(b, 'published') || tag(b, 'updated')),
-    summary: tag(b, 'description'),
+    summary: tag(b, 'description') || tag(b, 'content:encoded'),
     day: (b.match(/\/(20\d\d)\/(\d{4})\//) || []).slice(1).join('') || null, // 사진 주소 속 날짜 (날짜 없는 피드용)
   }));
 }
@@ -163,6 +165,16 @@ function tag(block, name) {
     .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+// RSS 요약문을 최대 200자로 자르고, 사설의 일부일 뿐임을 항상 '…'로 표시
+const EXCERPT_MAX = 200;
+function excerpt(text) {
+  // 경향신문 등은 요약 앞에 사진 설명이 붙는다 ('…하고 있다. 연합뉴스 본문…') → 사진 출처 표시 뒤부터 사용
+  const credit = text.slice(0, 200).match(/(연합뉴스|뉴시스|뉴스1|자료사진|로이터|(?<![A-Za-z])(?:AFP|AP|EPA)(?![A-Za-z]))(\.\s*|\s+|(?=[가-힣]))/);
+  if (credit) text = text.slice(credit.index + credit[0].length);
+  const t = text.length > EXCERPT_MAX ? text.slice(0, EXCERPT_MAX).replace(/\s*\S*$/, '') : text; // 단어 중간에서 자르지 않음
+  return t.replace(/(\.{3}|…|·+|\s)+$/, '') + ' …'; // 언론사가 붙인 '···' 등은 정리
 }
 
 function parseDate(s) {

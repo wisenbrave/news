@@ -222,7 +222,8 @@ function editorialView(list) {
       <h3>${esc(source)}</h3>
       <ul class="list">${items.map(a => {
         const title = a.title.replace(/\s*\[사설\]\s*/, ' ').trim();
-        return `<li class="item">${link({ ...a, title })}<div class="meta">${esc(timeOf(a))}
+        const lead = a.excerpt ? `<p class="excerpt">${esc(a.excerpt)}</p>` : '';
+        return `<li class="item">${link({ ...a, title })}${lead}<div class="meta">${esc(timeOf(a))}
           <button class="mini" type="button" data-bk="${esc(title)}">BIG KINDS에서 더 검색</button></div></li>`;
       }).join('')}</ul>
     </section>`).join('');
