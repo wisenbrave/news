@@ -144,7 +144,10 @@ function editorialView(list) {
 
 function render() {
   const terms = searchTerms();
-  const hit = a => !terms.length || matches(a, terms);
+  const quickWords = QUICK_SEARCHES[state.query.trim()]; // 빠른 검색 버튼이면 연결된 단어 중 하나만 맞아도 표시
+  const hit = a => !terms.length || (quickWords
+    ? quickWords.some(w => matches(a, [w.toLowerCase()]))
+    : matches(a, terms));
   const inTab = (a, tab) => (tab === '오늘' ? a.category !== EDITORIAL : a.category === tab);
 
   // 탭: 검색어가 있으면 검색 결과 수를 보여준다 (버튼은 그대로 두고 숫자만 바꿔 가로 스크롤 위치 유지)
@@ -210,7 +213,7 @@ function setQuery(q) {
 // ---------- 이벤트 ----------
 
 $('today').textContent = kstDate.format(new Date());
-$('quick').innerHTML = QUICK_SEARCHES.map(w => `<button type="button">${esc(w)}</button>`).join('');
+$('quick').innerHTML = Object.keys(QUICK_SEARCHES).map(w => `<button type="button">${esc(w)}</button>`).join('');
 $('tabs').innerHTML = TABS.map(tab => `<button type="button" data-tab="${tab}">${tab} <span></span></button>`).join('');
 
 $('q').addEventListener('input', e => { state.query = e.target.value; render(); });
