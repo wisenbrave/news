@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>오늘뉴스</title>
+  <meta name="description" content="오늘 국내 주요 뉴스를 5분 안에 훑어보는 가벼운 뉴스 도구">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="오늘뉴스">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="stylesheet" href="/css/style.css">
+  <script type="module" src="/js/app.js"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <h1>오늘뉴스</h1>
+      <button id="gold" class="gold" type="button" title="금 관련 뉴스 보기">
+        <span class="gold-label">KRX 금</span> <span id="gold-value">…</span>
+      </button>
+    </div>
+    <div class="dateline">
+      <span id="today"></span>
+      <span id="updated"></span>
+      <button id="refresh" class="refresh" type="button" aria-label="새로고침">↻<span class="refresh-label"> 새로고침</span></button>
+    </div>
+  </header>
+
+  <main>
+    <form class="search" role="search">
+      <input id="q" type="search" placeholder="오늘 뉴스 검색" autocomplete="off" enterkeyhint="search" aria-label="오늘 뉴스 검색">
+      <button id="clear" class="clear" type="button" aria-label="검색어 지우기" hidden>×</button>
+    </form>
+    <div id="quick" class="quick" aria-label="빠른 검색"></div>
+
+    <nav id="tabs" class="tabs" aria-label="카테고리"></nav>
+
+    <p id="notice" class="notice" hidden></p>
+
+    <section aria-live="polite">
+      <div class="list-head">
+        <h2 id="heading">오늘의 주요 뉴스</h2>
+        <span id="summary"></span>
+      </div>
+      <div id="list"><p class="empty">뉴스를 불러오는 중…</p></div>
+      <div class="more">
+        <button id="show-all" class="link-button" type="button" hidden></button>
+        <button id="bigkinds" class="bigkinds" type="button">BIG KINDS 상세검색</button>
+        <p id="bigkinds-tip" class="tip" hidden></p>
+      </div>
+    </section>
+  </main>
+
+  <footer>제목과 링크만 제공합니다. 기사 저작권은 각 언론사에 있습니다.</footer>
+</body>
+</html>
