@@ -28,6 +28,7 @@ a { color: inherit; }
 h1 { margin: 0; font-size: 1.5rem; letter-spacing: -0.03em; white-space: nowrap; }
 .gold { display: flex; align-items: center; min-height: 40px; font-size: 0.8125rem; color: var(--muted); text-decoration: none; white-space: nowrap; }
 .dateline { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; color: var(--muted); }
+#today { font-size: 1rem; font-weight: 700; color: var(--text); } /* 날짜·요일 강조 */
 .refresh { margin-left: auto; min-height: 40px; border: 0; background: none; padding: 0 0 0 8px; color: var(--muted); font-size: 0.875rem; white-space: nowrap; }
 .refresh:disabled { opacity: 0.4; }
 
