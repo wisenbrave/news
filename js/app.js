@@ -1,11 +1,11 @@
 import {
   TABS, EDITORIAL, OTHER, INTEREST_CATEGORIES, QUICK_SEARCHES, GOLD_QUERY, BIGKINDS_URL,
-  GROUP_SIMILARITY, GROUP_MAX_HOURS, TOP_NEWS_COUNT,
+  GROUP_SIMILARITY, GROUP_MAX_HOURS, EVIDENCE_SIMILARITY, EVIDENCE_LINK, TOP_NEWS_COUNT,
 } from './config.js';
 
 const $ = id => document.getElementById(id);
 const HOUR = 36e5;
-const state = { articles: [], groups: [], tab: '오늘', query: '', showAll: false, loading: true };
+const state = { articles: [], groups: [], outlets: {}, tab: '오늘', query: '', showAll: false, loading: true };
 
 const kstTime = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false });
 const kstDate = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', month: 'long', day: 'numeric', weekday: 'long' });
@@ -20,7 +20,14 @@ async function loadNews() {
     if (!res.ok) throw new Error(res.status);
     const data = await res.json();
     state.articles = data.articles || [];
-    state.groups = groupArticles(state.articles.filter(a => a.category !== EDITORIAL));
+    state.outlets = data.outlets || {};
+    // 사설·연합 헤드라인은 '이 이슈가 중요하다'는 근거로 뉴스 그룹에 연결된다
+    const evidence = [
+      ...state.articles.filter(a => a.category === EDITORIAL).map(a => ({ ...a, kind: 'editorial' })),
+      ...(data.headlines || []).map(h => ({ ...h, kind: 'headline', source: '연합뉴스' })),
+    ];
+    state.groups = groupArticles(state.articles.filter(a => a.category !== EDITORIAL), evidence)
+      .map(g => ({ ...g, rating: rate(g) }));
     $('updated').textContent = `${kstTime.format(new Date(data.updatedAt))} 업데이트`;
     showNotice(data.failed?.length ? `일부 뉴스를 불러오지 못했습니다. (${data.failed.join(', ')})` : '');
   } catch {
@@ -52,9 +59,10 @@ function showNotice(text) {
 }
 
 // ---------- 같은 사건 묶기 ----------
-// 제목을 두 글자 조각(바이그램)으로 나눠 겹치는 비율(Jaccard)이 GROUP_SIMILARITY 이상이면
-// 같은 사건으로 본다. 한국어는 조사가 붙어 단어 비교보다 두 글자 조각 비교가 정확하다.
-// 예: "한국은행이 기준금리 동결" ↔ "한은, 기준금리 동결" → '기준','준금','금리','동결' 공유
+// 제목을 두 글자 조각(바이그램)으로 나눠 겹치는 비율이 GROUP_SIMILARITY 이상이면 같은 사건으로 본다.
+// 한국어는 조사가 붙어 단어 비교보다 두 글자 조각 비교가 정확하다.
+// 드문 조각일수록 무게를 크게 준다: 오늘 기사 몇 건에만 나오는 '해킹'·'차귀도'가 겹치는 것은
+// 수십 건에 나오는 '대통'·'정부'가 겹치는 것보다 같은 사건이라는 강한 증거다. (검색엔진의 IDF와 같은 원리)
 
 function bigrams(title) {
   const text = title
@@ -62,38 +70,111 @@ function bigrams(title) {
     .toLowerCase()
     .replace(/[^0-9a-z가-힣\s]/g, ' ');
   const set = new Set();
-  for (const w of text.split(/\s+/)) for (let i = 0; i < w.length - 1; i++) set.add(w.slice(i, i + 2));
+  for (const w of text.split(/\s+/)) {
+    for (let i = 0; i < w.length - 1; i++) {
+      const g = w.slice(i, i + 2);
+      if (!/^\d\d$/.test(g)) set.add(g); // '00','10' 같은 숫자 조각은 아무 기사에나 겹치므로 제외
+    }
+  }
   return set;
 }
 
-function similarity(a, b) {
-  let common = 0;
-  for (const g of a) if (b.has(g)) common++;
-  return common / (a.size + b.size - common || 1);
-}
+// 유사도(가중 Jaccard) = 겹친 조각들의 무게 합 ÷ 두 제목 전체 조각의 무게 합.
+// 앞서 처리한 기사 중 이 유사도가 기준 이상인 기사가 있으면 그 기사의 그룹에 넣고, 없으면 새 그룹을 만든다.
+// 빠르게 하려고 '조각 → 그 조각이 나온 기사 목록'(색인)을 만들어, 조각을 하나라도 공유하는 기사끼리만 비교한다.
+//
+// evidence(사설·연합 헤드라인)는 새 그룹을 만들지 않고, 가장 비슷한 뉴스 그룹에 '중요하다는 근거'로 붙는다.
+function groupArticles(articles, evidence = []) {
+  const all = articles.map(a => bigrams(a.title));
+  const df = new Map(); // 조각별로 몇 개 기사 제목에 나오는지
+  for (const set of all) for (const g of set) df.set(g, (df.get(g) || 0) + 1);
+  const maxWeight = Math.log(articles.length + 1); // 뉴스 제목에 한 번도 안 나온 조각
+  const weight = new Map([...df].map(([g, n]) => [g, Math.log((articles.length + 1) / n)]));
+  const sum = set => [...set].reduce((s, g) => s + (weight.get(g) ?? maxWeight), 0);
+  const totals = all.map(sum);
 
-function groupArticles(articles) {
   const groups = [];
-  for (const article of articles) {
-    const grams = bigrams(article.title);
+  const groupOf = [];        // 기사 번호 → 그룹 번호
+  const index = new Map();   // 조각 → 이미 처리한 기사 번호들
+  articles.forEach((article, i) => {
     const t = Date.parse(article.publishedAt) || null;
-    const match = groups.find(g =>
-      (!t || !g.time || Math.abs(g.time - t) <= GROUP_MAX_HOURS * HOUR) &&
-      g.grams.some(other => similarity(other, grams) >= GROUP_SIMILARITY));
-    if (match) { match.related.push(article); match.grams.push(grams); }
-    else groups.push({ lead: article, related: [], grams: [grams], time: t });
-  }
-  return groups;
+    const common = new Map(); // 앞 기사 번호 → 겹친 조각 무게 합
+    for (const g of all[i]) for (const j of index.get(g) || []) common.set(j, (common.get(j) || 0) + weight.get(g));
+
+    let best = -1; // 조건을 만족하는 그룹 중 가장 먼저 만들어진 그룹
+    for (const [j, c] of common) {
+      const gi = groupOf[j];
+      const time = groups[gi].time;
+      if ((best === -1 || gi < best) && c / (totals[i] + totals[j] - c) >= GROUP_SIMILARITY &&
+          (!t || !time || Math.abs(time - t) <= GROUP_MAX_HOURS * HOUR)) best = gi;
+    }
+    if (best === -1) { best = groups.length; groups.push({ lead: article, related: [], time: t }); }
+    else groups[best].related.push(article);
+    groupOf[i] = best;
+    for (const g of all[i]) { if (!index.has(g)) index.set(g, []); index.get(g).push(i); }
+  });
+
+  // 사설·헤드라인 연결: 사설은 사건 하나가 아니라 이슈 전체를 다루므로, 사설 하나와 비슷한 뉴스 그룹들은
+  // 같은 이슈의 조각으로 보고 하나로 합친다. 같은 주제를 다룬 사설끼리도 서로 잇는다.
+  // (예: 'AI 해킹' 사설들이 '증권업계 긴장', '보안 100점 은행', '해킹 당한 금융사' 기사 묶음을 한 이슈로 모은다)
+  // 번호 0~(그룹 수-1)은 뉴스 그룹, 그 뒤는 사설·헤드라인
+  const root = [...groups, ...evidence].map((_, n) => n);
+  const find = n => (root[n] === n ? n : (root[n] = find(root[n])));
+  const join = (a, b) => { root[find(a)] = find(b); };
+  const evGrams = evidence.map(item => bigrams(item.title));
+  const evTotals = evGrams.map(sum);
+  evidence.forEach((item, k) => {
+    const common = new Map();
+    for (const g of evGrams[k]) for (const j of index.get(g) || []) common.set(j, (common.get(j) || 0) + weight.get(g));
+    for (const [j, c] of common) if (c / (evTotals[k] + totals[j] - c) >= EVIDENCE_SIMILARITY) join(groups.length + k, groupOf[j]);
+    for (let m = 0; m < k; m++) {
+      let c = 0;
+      for (const g of evGrams[k]) if (evGrams[m].has(g)) c += weight.get(g) ?? maxWeight;
+      if (c / (evTotals[k] + evTotals[m] - c) >= EVIDENCE_LINK) join(groups.length + k, groups.length + m);
+    }
+  });
+
+  const merged = new Map(); // 대표 번호 → 합쳐진 이슈
+  const issue = n => {
+    if (!merged.has(find(n))) merged.set(find(n), { parts: [], evidence: [] });
+    return merged.get(find(n));
+  };
+  groups.forEach((g, gi) => issue(gi).parts.push(g));
+  evidence.forEach((item, k) => issue(groups.length + k).evidence.push(item));
+  return [...merged.values()].filter(m => m.parts.length).map(m => { // 뉴스 없이 사설만 있는 주제는 제외
+    // 가장 많은 언론사가 보도한 조각의 대표 기사를 전체 이슈의 대표 기사로
+    m.parts.sort((a, b) => sourceCount(b) - sourceCount(a) || b.related.length - a.related.length);
+    const [main, ...others] = m.parts;
+    return { lead: main.lead, related: [...main.related, ...others.flatMap(p => [p.lead, ...p.related])], time: main.time, evidence: m.evidence };
+  });
 }
 
-// 중요도 = 함께 보도한 언론사 수(가장 큼) + 최근성(0~1) + 관심 분야 가산(0.5)
-function importance(group) {
-  const sources = new Set([group.lead, ...group.related].map(a => a.source)).size;
-  const hoursAgo = group.time ? (Date.now() - group.time) / HOUR : 12;
-  const recency = Math.max(0, 1 - hoursAgo / 12);
-  const interest = INTEREST_CATEGORIES.includes(group.lead.category) ? 0.5 : 0;
-  return (sources - 1) * 2 + recency + interest;
+// 대표 헤드라인 점수 — 클릭을 노린 기사보다 '편집국이 중요하다고 판단한 흔적'을 크게 본다. (하루 전체 기준)
+//   사설로 다룬 신문사 1곳당 +3   신문사가 '오늘 가장 중요하다'고 공식적으로 고른 주제
+//   연합뉴스 편집국 헤드라인 +3
+//   보수·진보 매체 모두 보도 +2   한쪽 진영의 관심사가 아니라 모두가 다룰 수밖에 없는 사건
+//   보도한 언론사 1곳당 핵심 매체(종합지·통신·방송) 1점, 그 외 0.5점
+//   관심 분야(경제·과학·교육) +0.3
+function rate(group) {
+  const outlet = name => state.outlets[name] || {};
+  const papers = [...new Set(group.evidence.filter(e => e.kind === 'editorial').map(e => e.source))];
+  const headline = group.evidence.some(e => e.kind === 'headline');
+  const sources = [...new Set([group.lead, ...group.related].map(a => a.source))];
+  const camps = new Set([...sources, ...papers].map(name => outlet(name).camp).filter(Boolean));
+  const bothCamps = camps.has('보수') && camps.has('진보');
+  const coverage = sources.reduce((sum, name) => sum + (outlet(name).core ? 1 : 0.5), 0);
+  const score = papers.length * 3 + (headline ? 3 : 0) + (bothCamps ? 2 : 0) + coverage +
+    (INTEREST_CATEGORIES.includes(group.lead.category) ? 0.3 : 0);
+  const reasons = [
+    papers.length && `사설 ${papers.length}곳`,
+    headline && '연합 헤드라인',
+    bothCamps && '보수·진보 모두 보도',
+    sources.length > 1 && `${sources.length}개 언론사`,
+  ].filter(Boolean);
+  return { score, reasons, papers };
 }
+
+const sourceCount = group => new Set([group.lead, ...group.related].map(a => a.source)).size;
 
 // ---------- 검색 ----------
 
@@ -121,11 +202,16 @@ function articleItem(a) {
 }
 
 function groupItem(g) {
-  const related = g.related.length
-    ? `<details><summary>관련 보도 ${g.related.length}개 <span class="meta">${esc([...new Set(g.related.map(a => a.source))].join(', '))}</span></summary><ul>${g.related.map(a =>
+  // 왜 주요 뉴스인지: 사설 n곳 · 연합 헤드라인 · 보수·진보 모두 보도 · n개 언론사
+  const why = g.rating.reasons.length
+    ? `<div class="why">${g.rating.reasons.map(r => `<span>${esc(r)}</span>`).join('')}</div>` : '';
+  const editorials = g.evidence.filter(e => e.kind === 'editorial');
+  const items = [...editorials, ...g.related];
+  const related = items.length
+    ? `<details><summary>관련 기사 ${g.related.length}건${editorials.length ? ` · 사설 ${editorials.length}건` : ''}</summary><ul>${items.map(a =>
         `<li><a href="${esc(a.link)}" target="_blank" rel="noopener">${esc(a.title)}</a><span class="meta">${esc(meta(a, false))}</span></li>`).join('')}</ul></details>`
     : '';
-  return `<li class="item">${link(g.lead)}<div class="meta">${esc(meta(g.lead))}</div>${related}</li>`;
+  return `<li class="item">${link(g.lead)}<div class="meta">${esc(meta(g.lead))}</div>${why}${related}</li>`;
 }
 
 function editorialView(list) {
@@ -163,7 +249,7 @@ function render() {
   $('show-all').hidden = true;
 
   if (state.tab === '오늘' && !terms.length) {
-    const groups = state.showAll ? state.groups : [...state.groups].sort((a, b) => importance(b) - importance(a)).slice(0, TOP_NEWS_COUNT);
+    const groups = state.showAll ? state.groups : [...state.groups].sort((a, b) => b.rating.score - a.rating.score).slice(0, TOP_NEWS_COUNT);
     heading = state.showAll ? '오늘 전체 뉴스' : '오늘의 주요 뉴스';
     html = groups.length ? `<ul class="list">${groups.map(groupItem).join('')}</ul>` : '';
     if (state.groups.length > TOP_NEWS_COUNT) {

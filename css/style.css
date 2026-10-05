@@ -44,19 +44,22 @@ h1 { margin: 0; font-size: 1.5rem; letter-spacing: -0.03em; white-space: nowrap;
 .search input::-webkit-search-cancel-button { display: none; }
 .clear { position: absolute; right: calc(var(--gutter) + 5px); top: 13px; width: 40px; height: 40px; border: 0; border-radius: 50%; background: none; font-size: 1.4rem; color: var(--muted); }
 
-.quick { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 14px; }
+/* 빠른 검색·카테고리: 폰에서는 한 줄로 두고 옆으로 밀어서 봄 */
+.quick, .tabs {
+  display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; scroll-padding-inline: var(--gutter);
+  margin: 0 calc(-1 * var(--gutter)); padding: 0 var(--gutter);
+}
+.quick::-webkit-scrollbar, .tabs::-webkit-scrollbar { display: none; }
+.quick { margin-top: 2px; margin-bottom: 14px; }
 .quick button, .tabs button {
   min-height: 40px; padding: 0 12px; border: 0; border-radius: 20px; background: var(--soft); font-size: 0.875rem; white-space: nowrap;
 }
 .quick button[aria-pressed="true"], .tabs button[aria-pressed="true"] { background: var(--text); color: #fff; }
 
-/* 카테고리: 폰에서는 한 줄로 두고 옆으로 밀어서 봄 */
-.tabs {
-  display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; scroll-padding-inline: var(--gutter);
-  margin: 0 calc(-1 * var(--gutter)); padding: 0 var(--gutter) 12px; border-bottom: 1px solid var(--line);
-}
-.tabs::-webkit-scrollbar { display: none; }
-.tabs button { flex: none; background: none; padding: 0 11px; }
+/* 카테고리 */
+.tabs { gap: 4px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.quick button, .tabs button { flex: none; }
+.tabs button { background: none; padding: 0 11px; }
 .tabs button span { margin-left: 2px; font-size: 0.8em; color: var(--muted); }
 .tabs button[aria-pressed="true"] span { color: #c9c9c9; }
 
@@ -69,13 +72,16 @@ h2 { margin: 0; font-size: 1.125rem; letter-spacing: -0.02em; }
 
 .list { list-style: none; margin: 0; padding: 0; }
 .item { padding: 14px 0; border-bottom: 1px solid var(--line); }
-.item .title { display: block; padding: 5px 0; margin: -5px 0; font-size: 1.0625rem; font-weight: 600; line-height: 1.45; letter-spacing: -0.01em; text-decoration: none; }
+.item .title { display: block; padding: 6px 0; margin: -6px 0; font-size: 1.0625rem; font-weight: 600; line-height: 1.45; letter-spacing: -0.01em; text-decoration: none; }
 .item .title:visited { color: #6a6a6a; }
 .meta { margin-top: 4px; font-size: 0.8125rem; color: var(--muted); }
 
+/* 주요 뉴스 근거 표시 */
+.why { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.why span { padding: 1px 8px; border-radius: 10px; background: var(--soft); font-size: 0.75rem; color: #444; }
+
 details { margin-top: 4px; font-size: 0.875rem; }
 summary { display: block; padding: 8px 0; color: var(--accent); cursor: pointer; list-style: none; }
-summary .meta { display: inline; margin-left: 4px; }
 summary::-webkit-details-marker { display: none; }
 summary::after { content: " ▾"; }
 details[open] summary::after { content: " ▴"; }
@@ -113,7 +119,7 @@ footer { margin-top: 40px; font-size: 0.75rem; color: #9a9a9a; text-align: cente
 @media (min-width: 600px) {
   .top { padding-top: 32px; }
   h1 { font-size: 1.75rem; }
-  .tabs { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0 0 14px; }
+  .quick, .tabs { flex-wrap: wrap; overflow: visible; margin-left: 0; margin-right: 0; padding-left: 0; padding-right: 0; }
   .more { align-items: center; }
   .item .title { font-size: 1.125rem; }
 }

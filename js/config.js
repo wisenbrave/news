@@ -33,11 +33,16 @@ export const GOLD_QUERY = '금'; // 금 시세를 누르면 이 단어로 검색
 export const BIGKINDS_URL = 'https://www.bigkinds.or.kr/v2/news/search.do';
 
 // 이 꼬리표로 시작하는 제목은 수집하지 않는다 (사진 캡션, 부고 등 브리핑에 불필요한 항목)
-export const EXCLUDE_TITLE_PREFIXES = ['[사진]', '[포토]', '[부고]', '[인사]', '[게시판]', '[날씨]', '[오늘의 운세]'];
+export const EXCLUDE_TITLE_PREFIXES = ['[사진]', '[포토]', '[부고]', '[인사]', '[게시판]', '[날씨]', '[오늘의 운세]', '[LPGA 최종순위]', '[PGA 최종순위]'];
 
-// 같은 사건 묶기: 제목 두 글자 조각 유사도(Jaccard, 0~1)가 이 값 이상이고 시간 차가 아래 범위 안이면 묶는다.
-// 잘못 묶이는 것보다 중복이 조금 남는 편이 낫기 때문에 보수적으로 잡는다. (실측: 같은 사건 0.3~0.9, 다른 사건 0.25 이하)
-export const GROUP_SIMILARITY = 0.3;
+// 같은 사건 묶기: 제목 두 글자 조각의 유사도(드문 조각일수록 가중, 0~1)가 이 값 이상이고 시간 차가 아래 범위 안이면 묶는다.
+// 잘못 묶이는 것보다 중복이 조금 남는 편이 낫다. 실측(2026-10-05, 기사 721건): 0.2에서 오묶음 0건, 0.15부터 오묶음 발생.
+export const GROUP_SIMILARITY = 0.2;
 export const GROUP_MAX_HOURS = 12;
+
+// 사설·연합 헤드라인을 뉴스 그룹에 연결하는 기준 (사설 제목은 표현이 달라 뉴스끼리보다 낮게)
+// 실측(2026-10-05): 사설↔뉴스 0.12, 사설↔사설 0.1 이상에서 잘못된 연결 없음
+export const EVIDENCE_SIMILARITY = 0.12;
+export const EVIDENCE_LINK = 0.1;
 
 export const TOP_NEWS_COUNT = 15; // '오늘' 탭에 먼저 보여줄 주요 뉴스 수

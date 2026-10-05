@@ -38,20 +38,35 @@ npm run dev
 `api/news.js`의 `feedSources`에 한 줄을 추가합니다.
 
 ```js
-{ name: 'SBS', url: 'https://news.sbs.co.kr/news/SectionRssFeed.do?sectionId=01&plink=RSSREADER', defaultCategory: '기타' },
-// 오피니언 피드에서 사설만 고르려면 titleMatch 사용
-{ name: '조선일보', url: 'https://www.chosun.com/arc/outboundfeeds/rss/category/opinion/?outputType=xml', defaultCategory: '사설', titleMatch: '[사설]' },
-// 잠시 끄려면 disabled: true
+{ name: 'SBS', core: true, url: ['01', '02', '03', '07'].map(sbs) },   // 섹션 피드 여러 개는 배열로
+{ name: '한국경제', url: 'https://www.hankyung.com/feed/economy', defaultCategory: '경제·금융' },
+{ name: '조선일보', camp: '보수', url: chosun('opinion'), defaultCategory: '사설', titleMatch: '[사설]' },
 ```
 
-- `defaultCategory`: 제목 키워드로 분류되지 않을 때 쓰는 분야 (`기타`, `경제·금융`, `과학·기술`, `교육`, `사설`)
-- 한 피드가 실패해도 나머지는 정상 표시됩니다. 실패한 언론사는 화면에 작게 안내됩니다.
+- `url`: 연예·스포츠 등 흥행성 기사를 줄이려고 '전체' 대신 정치·경제·사회·국제 섹션 피드를 씁니다.
+- `core`: 핵심 매체(종합지·통신·방송). 주요 뉴스 점수에서 1곳당 1점, 그 외 매체는 0.5점
+- `camp`: 사설 논조 기준 `'보수'` / `'진보'`. 양쪽이 모두 다룬 이슈에 가산점
+- `defaultCategory`: 제목 키워드로 분류되지 않을 때 쓰는 분야, `titleMatch`: 이 글자가 있는 기사만 사용
+- 한 피드가 실패해도 나머지는 정상 표시됩니다.
+
+## 오늘의 주요 뉴스 순위
+
+클릭을 노린 기사보다 **편집국이 중요하다고 판단한 흔적**을 크게 봅니다(하루 전체 기준, `js/app.js`의 `rate`).
+
+| 근거 | 점수 |
+|---|---|
+| 그 이슈를 사설로 다룬 신문사 | 1곳당 +3 |
+| 연합뉴스 편집국 "이 시각 헤드라인" | +3 |
+| 보수·진보 매체 모두 보도 | +2 |
+| 보도한 언론사 | 핵심 매체 1점, 그 외 0.5점 |
+
+같은 사건 기사는 제목 유사도로 묶고, 같은 주제의 사설이 걸친 기사 묶음은 한 이슈로 합칩니다. 각 뉴스에 근거가 표시됩니다(예: "사설 4곳 · 보수·진보 모두 보도 · 6개 언론사").
 
 ## 카테고리 키워드 수정 방법
 
 `js/config.js`의 `CATEGORY_KEYWORDS`를 고칩니다. 제목에 들어간 키워드가 가장 많은 분야로 분류되고,
 동점이면 피드의 `defaultCategory`가 우선합니다. 같은 파일에서 빠른 검색어(`QUICK_SEARCHES`),
-제외할 제목 꼬리표(`EXCLUDE_TITLE_PREFIXES`), 기사 묶기 기준(`GROUP_SIMILARITY`), 주요 뉴스 개수(`TOP_NEWS_COUNT`)도 바꿀 수 있습니다.
+제외할 제목 꼬리표(`EXCLUDE_TITLE_PREFIXES`), 기사 묶기 기준(`GROUP_SIMILARITY`, `EVIDENCE_SIMILARITY`), 주요 뉴스 개수(`TOP_NEWS_COUNT`)도 바꿀 수 있습니다.
 
 ## BIG KINDS URL 수정 위치
 
