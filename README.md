@@ -31,7 +31,7 @@ npm run dev
 
 또는 CLI: `npm i -g vercel` 후 `vercel` (미리보기), `vercel --prod` (운영).
 
-빌드 과정이 없습니다. `api/` 폴더의 파일이 자동으로 `/api/news`, `/api/gold`가 됩니다.
+빌드 과정이 없습니다. `api/news.js`가 자동으로 `/api/news`가 됩니다. 환경변수는 필요 없습니다.
 
 ## RSS 추가 방법
 
@@ -78,13 +78,9 @@ npm run dev
 `js/config.js`의 `BIGKINDS_URL` 한 곳입니다.
 BIG KINDS는 현재 검색어를 URL로 넘기는 방식(`?query=`)을 지원하지 않아, 뉴스검색 페이지를 열고 검색어를 클립보드에 복사합니다.
 
-## KRX API 설정 방법
+## KRX 금 시세
 
-1. [공공데이터포털](https://www.data.go.kr)에서 **금융위원회_일반상품시세정보** 활용신청 → 일반 인증키 발급
-2. Vercel 프로젝트 → Settings → Environment Variables에 `DATA_GO_KR_SERVICE_KEY` 추가 후 재배포
-   (로컬은 `.env.example`을 `.env`로 복사해 값 입력)
-
-키가 없으면 상단에 "KRX 금 시세 연결 필요"로 표시되고 나머지 기능은 그대로 동작합니다. 시세는 전 영업일 종가(원/g)입니다.
+상단 "KRX 금 시세 ↗" 링크를 누르면 KRX 금시장 시세(원/g) 페이지가 새 탭으로 열립니다. 주소는 `js/config.js`의 `GOLD_URL`에서 바꿉니다.
 
 ## 프로젝트 구조
 
@@ -94,7 +90,6 @@ css/style.css           디자인
 js/config.js            키워드·버튼·기준값 설정 (화면과 서버가 함께 사용)
 js/app.js               검색·탭·기사 묶기·중요도 계산·화면 그리기
 api/news.js             RSS 수집 (feedSources) → 오늘 기사 JSON, 5분 캐시
-api/gold.js             KRX 금 시세 (공공데이터포털)
 manifest.webmanifest    홈 화면 설치 정보
 icons/                  앱 아이콘
 dev-server.js           로컬 실행용 서버

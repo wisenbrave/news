@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node --env-file-if-exists=.env dev-server.js"
+    "dev": "node dev-server.js"
   },
   "engines": {
     "node": ">=22"

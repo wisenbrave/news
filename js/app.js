@@ -1,5 +1,5 @@
 import {
-  TABS, EDITORIAL, OTHER, INTEREST_CATEGORIES, QUICK_SEARCHES, TODAY_KEYWORD_COUNT, KEYWORD_STOPWORDS, GOLD_QUERY, BIGKINDS_URL,
+  TABS, EDITORIAL, OTHER, INTEREST_CATEGORIES, QUICK_SEARCHES, TODAY_KEYWORD_COUNT, KEYWORD_STOPWORDS, GOLD_URL, BIGKINDS_URL,
   GROUP_SIMILARITY, GROUP_MAX_HOURS, EVIDENCE_SIMILARITY, EVIDENCE_LINK, TOP_NEWS_COUNT,
 } from './config.js';
 
@@ -33,33 +33,13 @@ async function loadNews() {
       state.keywords.map(k => `<button type="button">${esc(k.label)}</button>`).join('');
     $('hot').hidden = !state.keywords.length;
     $('updated').textContent = `${kstTime.format(new Date(data.updatedAt))} 업데이트`;
-    showNotice(data.failed?.length ? `일부 뉴스를 불러오지 못했습니다. (${data.failed.join(', ')})` : '');
+    state.loadFailed = false; // 일부 언론사가 실패해도 따로 알리지 않고 받은 뉴스만 보여준다
   } catch {
-    showNotice(state.articles.length
-      ? '일부 뉴스를 불러오지 못했습니다. 이전 목록을 보여드립니다.'
-      : '뉴스를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.');
+    state.loadFailed = true;  // 이전 목록이 있으면 그대로 두고, 없을 때만 목록 자리에 안내
   }
   state.loading = false;
   $('refresh').disabled = false;
   render();
-}
-
-async function loadGold() {
-  const el = $('gold-value');
-  try {
-    const g = await (await fetch('/api/gold')).json();
-    if (!g.ok) throw new Error();
-    const up = g.changeRate >= 0;
-    el.innerHTML = `1g ₩${g.price.toLocaleString('ko-KR')} <span class="${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(g.changeRate).toFixed(2)}%</span>`;
-    $('gold').title = `${g.date.slice(4, 6)}/${g.date.slice(6)} 종가 · 금 관련 뉴스 보기`;
-  } catch {
-    el.textContent = '시세 연결 필요';
-  }
-}
-
-function showNotice(text) {
-  $('notice').textContent = text;
-  $('notice').hidden = !text;
 }
 
 // ---------- 같은 사건 묶기 ----------
@@ -325,7 +305,8 @@ function render() {
   $('list').innerHTML = html || `<p class="empty">${terms.length
     ? `"${esc(state.query.trim())}" 검색 결과가 없습니다.`
     : state.loading ? '뉴스를 불러오는 중…'
-    : state.articles.length ? '아직 이 분야의 오늘 기사가 없습니다.' : '표시할 뉴스가 없습니다.'}</p>`;
+    : state.articles.length ? '아직 이 분야의 오늘 기사가 없습니다.'
+    : state.loadFailed ? '뉴스를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.' : '표시할 뉴스가 없습니다.'}</p>`;
 
   const q = state.query.trim();
   $('bigkinds').textContent = q ? `BIG KINDS에서 "${q}" 더 검색`
@@ -356,6 +337,7 @@ function setQuery(q) {
 // ---------- 이벤트 ----------
 
 $('today').textContent = kstDate.format(new Date());
+$('gold').href = GOLD_URL;
 $('quick').innerHTML = '<span class="row-label">관심 기술</span>' + Object.keys(QUICK_SEARCHES).map(w => `<button type="button">${esc(w)}</button>`).join('');
 $('tabs').innerHTML = TABS.map(tab => `<button type="button" data-tab="${tab}">${tab} <span></span></button>`).join('');
 
@@ -377,7 +359,6 @@ $('tabs').addEventListener('click', e => {
 });
 $('show-all').addEventListener('click', () => { state.showAll = !state.showAll; render(); });
 $('refresh').addEventListener('click', loadNews);
-$('gold').addEventListener('click', () => { state.tab = '오늘'; setQuery(GOLD_QUERY); });
 $('bigkinds').addEventListener('click', () => openBigKinds(state.query.trim()));
 $('list').addEventListener('click', e => {
   if (e.target.dataset.bk) openBigKinds(e.target.dataset.bk);
@@ -385,4 +366,3 @@ $('list').addEventListener('click', e => {
 
 render();
 loadNews();
-loadGold();

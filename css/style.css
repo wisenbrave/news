@@ -5,8 +5,6 @@
   --line: #e8e8e8;
   --soft: #f4f4f2;
   --accent: #1f4fd1;
-  --up: #c62828;
-  --down: #1e5bc6;
   --gutter: 16px;
   font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", "Noto Sans KR", sans-serif;
   color: var(--text);
@@ -24,10 +22,7 @@ a { color: inherit; }
 .top { padding: 16px 0 4px; }
 .brand { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 h1 { margin: 0; font-size: 1.5rem; letter-spacing: -0.03em; white-space: nowrap; }
-.gold { min-height: 40px; border: 0; background: none; padding: 0; font-size: 0.8rem; color: var(--muted); text-align: right; }
-.gold-label { font-weight: 600; color: var(--text); }
-.up { color: var(--up); }
-.down { color: var(--down); }
+.gold { display: flex; align-items: center; min-height: 40px; font-size: 0.8125rem; color: var(--muted); text-decoration: none; white-space: nowrap; }
 .dateline { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; color: var(--muted); }
 .refresh { margin-left: auto; min-height: 40px; border: 0; background: none; padding: 0 0 0 8px; color: var(--muted); font-size: 0.875rem; white-space: nowrap; }
 .refresh:disabled { opacity: 0.4; }
@@ -65,8 +60,6 @@ h1 { margin: 0; font-size: 1.5rem; letter-spacing: -0.03em; white-space: nowrap;
 .tabs button { background: none; padding: 0 11px; }
 .tabs button span { margin-left: 2px; font-size: 0.8em; color: var(--muted); }
 .tabs button[aria-pressed="true"] span { color: #c9c9c9; }
-
-.notice { margin: 12px 0 0; padding: 8px 12px; border-radius: 8px; background: #fff6e5; font-size: 0.8125rem; color: #8a5a00; }
 
 /* 기사 목록 */
 .list-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 20px 0 2px; }
