@@ -26,9 +26,6 @@ export const feedSources = [
   { name: '매일경제', url: 'https://www.mk.co.kr/rss/30100041/', defaultCategory: '경제·금융' },
   { name: '한국경제', url: 'https://www.hankyung.com/feed/it', defaultCategory: '과학·기술' },
   { name: '전자신문', url: 'https://rss.etnews.com/Section901.xml', defaultCategory: '과학·기술' },
-  { name: '에듀프레스', url: 'https://www.edupress.kr/rss/allArticle.xml', defaultCategory: '교육' },
-  { name: '교육플러스', url: 'https://www.edpl.co.kr/rss/allArticle.xml', defaultCategory: '교육' },
-  { name: '한국대학신문', url: 'https://news.unn.net/rss/allArticle.xml', defaultCategory: '교육' },
   // 사설: 신문사가 '오늘 가장 중요하다'고 공식적으로 고른 주제 → 주요 뉴스의 가장 강한 근거로 쓴다
   { name: '조선일보', camp: '보수', url: chosun('opinion'), defaultCategory: EDITORIAL, titleMatch: '[사설]' },
   { name: '한겨레', camp: '진보', url: 'https://www.hani.co.kr/rss/opinion/', defaultCategory: EDITORIAL, titleMatch: '[사설]' },

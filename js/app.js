@@ -1,11 +1,11 @@
 import {
-  TABS, EDITORIAL, OTHER, INTEREST_CATEGORIES, QUICK_SEARCHES, GOLD_QUERY, BIGKINDS_URL,
+  TABS, EDITORIAL, OTHER, INTEREST_CATEGORIES, QUICK_SEARCHES, TODAY_KEYWORD_COUNT, KEYWORD_STOPWORDS, GOLD_QUERY, BIGKINDS_URL,
   GROUP_SIMILARITY, GROUP_MAX_HOURS, EVIDENCE_SIMILARITY, EVIDENCE_LINK, TOP_NEWS_COUNT,
 } from './config.js';
 
 const $ = id => document.getElementById(id);
 const HOUR = 36e5;
-const state = { articles: [], groups: [], outlets: {}, tab: '오늘', query: '', showAll: false, loading: true };
+const state = { articles: [], groups: [], keywords: [], outlets: {}, tab: '오늘', query: '', showAll: false, loading: true };
 
 const kstTime = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false });
 const kstDate = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', month: 'long', day: 'numeric', weekday: 'long' });
@@ -28,6 +28,10 @@ async function loadNews() {
     ];
     state.groups = groupArticles(state.articles.filter(a => a.category !== EDITORIAL), evidence)
       .map(g => ({ ...g, rating: rate(g) }));
+    state.keywords = todayKeywords(state.groups, state.articles.length);
+    $('hot').innerHTML = '<span class="row-label">오늘의 핵심어</span>' +
+      state.keywords.map(k => `<button type="button">${esc(k.label)}</button>`).join('');
+    $('hot').hidden = !state.keywords.length;
     $('updated').textContent = `${kstTime.format(new Date(data.updatedAt))} 업데이트`;
     showNotice(data.failed?.length ? `일부 뉴스를 불러오지 못했습니다. (${data.failed.join(', ')})` : '');
   } catch {
@@ -154,7 +158,7 @@ function groupArticles(articles, evidence = []) {
 //   연합뉴스 편집국 헤드라인 +3
 //   보수·진보 매체 모두 보도 +2   한쪽 진영의 관심사가 아니라 모두가 다룰 수밖에 없는 사건
 //   보도한 언론사 1곳당 핵심 매체(종합지·통신·방송) 1점, 그 외 0.5점
-//   관심 분야(경제·과학·교육) +0.3
+//   관심 분야(경제·과학) +0.3
 function rate(group) {
   const outlet = name => state.outlets[name] || {};
   const papers = [...new Set(group.evidence.filter(e => e.kind === 'editorial').map(e => e.source))];
@@ -180,9 +184,12 @@ const sourceCount = group => new Set([group.lead, ...group.related].map(a => a.s
 
 function matches(article, terms) {
   const text = `${article.title} ${article.source} ${article.category}`.toLowerCase();
-  return terms.every(t => t.length > 1
-    ? text.includes(t)
-    : new RegExp(`(^|[^가-힣a-z0-9])${t.replace(/\W/g, '\\$&')}([^가-힣a-z0-9]|$)`).test(text)); // 한 글자는 단독 단어만 (예: '금' ≠ '금리')
+  return terms.every(t => {
+    const pattern = t.replace(/\W/g, '\\$&');
+    if (t.length === 1) return new RegExp(`(^|[^가-힣a-z0-9])${pattern}([^가-힣a-z0-9]|$)`).test(text); // 한 글자는 단독 단어만 (예: '금' ≠ '금리')
+    if (/^[a-z0-9&]+$/.test(t)) return new RegExp(`(^|[^a-z])${pattern}([^a-z]|$)`).test(text); // 영문은 다른 영단어의 일부면 제외 (예: 'ms' ≠ 'items')
+    return text.includes(t);
+  });
 }
 
 function searchTerms() {
@@ -229,18 +236,58 @@ function editorialView(list) {
     </section>`).join('');
 }
 
-// 이슈 묶음이 어느 분야 탭에 속하는지: 대표 기사의 분야이거나, 묶인 기사 3분의 1 이상이 그 분야
+// ---------- 오늘의 핵심어 ----------
+// 주요 뉴스 상위 이슈마다 대표 기사 제목의 단어 중, 그 이슈를 다룬 언론사 여러 곳이 쓰고(공통)
+// 오늘 다른 기사에는 드문(특징) 단어 2개를 고른다. 누르면 그 이슈로 묶인 기사를 보여준다.
+const JOSA = /(으로|에서|에게|까지|부터|이라|라며|에도|처럼|보다|와의|과의|의|은|는|이|가|을|를|에|도|로|와|과|만|서|엔)$/;
+const VERB = /(다|해|해야|하라|말라|라며|하고|하는|했던|하며|한다|된다|될까|나|까|죠|요|며|고|던|는)$/; // 서술어는 제외
+const STOPWORDS = new Set(KEYWORD_STOPWORDS);
+
+function titleWords(title) {
+  return [...new Set(title.replace(/\[[^\]]*\]|\([^)]*\)/g, ' ').split(/[^0-9A-Za-z가-힣]+/)
+    .map(w => (w.length > 2 ? w.replace(JOSA, '') : w))
+    .filter(w => w.length >= 2 && !/^\d/.test(w) && !STOPWORDS.has(w) && !(w.length > 2 && VERB.test(w))))];
+}
+
+function todayKeywords(groups, articleCount) {
+  const df = new Map(); // 단어별로 오늘 몇 개 기사 제목에 나오는지
+  for (const g of groups) for (const a of [g.lead, ...g.related]) for (const w of titleWords(a.title)) df.set(w, (df.get(w) || 0) + 1);
+  const used = new Set();
+  const keywords = [];
+  for (const g of [...groups].sort((a, b) => b.rating.score - a.rating.score)) {
+    if (keywords.length >= TODAY_KEYWORD_COUNT) break;
+    const articles = [g.lead, ...g.related];
+    const sources = new Set(articles.map(a => a.source));
+    if (sources.size < 2) continue; // 한 언론사만 다룬 기사는 '오늘의 핵심'으로 보지 않음
+    const cover = new Map(); // 단어별로 이 이슈를 다룬 언론사 몇 곳이 썼는지
+    for (const s of sources) {
+      for (const w of new Set(articles.filter(a => a.source === s).flatMap(a => titleWords(a.title)))) cover.set(w, (cover.get(w) || 0) + 1);
+    }
+    const lead = titleWords(g.lead.title);
+    const best = lead.filter(w => (cover.get(w) || 0) >= 2 && !used.has(w))
+      .map(w => [w, (cover.get(w) / sources.size) * Math.log(articleCount / df.get(w)) * (w.length >= 3 ? 1.2 : 1)])
+      .sort((x, y) => y[1] - x[1]).slice(0, 2).map(x => x[0])
+      .sort((x, y) => lead.indexOf(x) - lead.indexOf(y)); // 제목에 나오는 순서대로
+    if (!best.length) continue;
+    best.forEach(w => used.add(w));
+    keywords.push({ label: best.join(' '), ids: new Set(articles.map(a => a.id)) });
+  }
+  return keywords;
+}
+
+// 이슈 묶음이 어느 분야 탭에 속하는지: 대표 기사의 분야이거나, 묶인 기사 절반 이상이 그 분야
 function groupInTab(group, tab) {
   const all = [group.lead, ...group.related];
-  return group.lead.category === tab || all.filter(a => a.category === tab).length * 3 >= all.length;
+  return group.lead.category === tab || all.filter(a => a.category === tab).length * 2 >= all.length;
 }
 
 function render() {
   const terms = searchTerms();
   const quickWords = QUICK_SEARCHES[state.query.trim()]; // 빠른 검색 버튼이면 연결된 단어 중 하나만 맞아도 표시
+  const issue = state.keywords.find(k => k.label === state.query.trim()); // 오늘의 핵심어면 그 이슈의 기사도 표시
   const hit = a => !terms.length || (quickWords
     ? quickWords.some(w => matches(a, [w.toLowerCase()]))
-    : matches(a, terms));
+    : issue?.ids.has(a.id) || matches(a, terms));
   const inTab = (a, tab) => (tab === '오늘' ? a.category !== EDITORIAL : a.category === tab);
 
   // 탭: 검색어가 있으면 검색 결과 수를 보여준다 (버튼은 그대로 두고 숫자만 바꿔 가로 스크롤 위치 유지)
@@ -284,7 +331,7 @@ function render() {
   $('bigkinds').textContent = q ? `BIG KINDS에서 "${q}" 더 검색`
     : state.tab !== '오늘' ? `BIG KINDS에서 ${state.tab} 더 검색` : 'BIG KINDS 상세검색';
   $('clear').hidden = !state.query;
-  $('quick').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.textContent === q));
+  document.querySelectorAll('#hot button, #quick button').forEach(b => b.setAttribute('aria-pressed', b.textContent === q));
 }
 
 // BIG KINDS는 검색어를 URL로 받지 않으므로, 검색어를 복사해 두고 검색 페이지를 연다.
@@ -309,15 +356,17 @@ function setQuery(q) {
 // ---------- 이벤트 ----------
 
 $('today').textContent = kstDate.format(new Date());
-$('quick').innerHTML = Object.keys(QUICK_SEARCHES).map(w => `<button type="button">${esc(w)}</button>`).join('');
+$('quick').innerHTML = '<span class="row-label">관심 기술</span>' + Object.keys(QUICK_SEARCHES).map(w => `<button type="button">${esc(w)}</button>`).join('');
 $('tabs').innerHTML = TABS.map(tab => `<button type="button" data-tab="${tab}">${tab} <span></span></button>`).join('');
 
 $('q').addEventListener('input', e => { state.query = e.target.value; render(); });
 $('q').form.addEventListener('submit', e => { e.preventDefault(); $('q').blur(); }); // 폰 키보드의 '검색'을 누르면 키보드 닫기
 $('clear').addEventListener('click', () => { setQuery(''); $('q').focus(); });
-$('quick').addEventListener('click', e => {
-  if (e.target.tagName === 'BUTTON') setQuery(state.query.trim() === e.target.textContent ? '' : e.target.textContent);
-});
+for (const row of ['hot', 'quick']) {
+  $(row).addEventListener('click', e => {
+    if (e.target.tagName === 'BUTTON') setQuery(state.query.trim() === e.target.textContent ? '' : e.target.textContent);
+  });
+}
 $('tabs').addEventListener('click', e => {
   const button = e.target.closest('button');
   if (!button) return;
