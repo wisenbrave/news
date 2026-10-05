@@ -1,5 +1,5 @@
 import {
-  TABS, EDITORIAL, OTHER, INTEREST_CATEGORIES, QUICK_SEARCHES, TODAY_KEYWORD_COUNT, KEYWORD_STOPWORDS, GOLD_URL, BIGKINDS_URL,
+  TABS, EDITORIAL, OTHER, INTEREST_CATEGORIES, QUICK_SEARCHES, TODAY_KEYWORD_COUNT, KEYWORD_STOPWORDS, GOLD_URL, WEATHER_URL, BIGKINDS_URL,
   GROUP_SIMILARITY, GROUP_MAX_HOURS, EVIDENCE_SIMILARITY, EVIDENCE_LINK, TOP_NEWS_COUNT, TOP_NEWS_COUNT_WIDE,
 } from './config.js';
 
@@ -357,6 +357,7 @@ $('theme').addEventListener('click', () => {
 
 $('today').textContent = kstDate.format(new Date());
 $('gold').href = GOLD_URL;
+$('weather').href = WEATHER_URL;
 $('quick').innerHTML = '<span class="row-label">관심 기술</span>' + Object.keys(QUICK_SEARCHES).map(w => `<button type="button">${esc(w)}</button>`).join('');
 $('tabs').innerHTML = TABS.map(tab => `<button type="button" data-tab="${tab}">${tab} <span></span></button>`).join('');
 

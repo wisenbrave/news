@@ -78,9 +78,9 @@ npm run dev
 `js/config.js`의 `BIGKINDS_URL` 한 곳입니다.
 BIG KINDS는 현재 검색어를 URL로 넘기는 방식(`?query=`)을 지원하지 않아, 뉴스검색 페이지를 열고 검색어를 클립보드에 복사합니다.
 
-## KRX 금 시세
+## 날씨 · KRX 금 시세 바로가기
 
-상단 "KRX 금 시세 ↗" 링크를 누르면 KRX 금시장 시세(원/g) 페이지가 새 탭으로 열립니다. 주소는 `js/config.js`의 `GOLD_URL`에서 바꿉니다.
+상단 "KRX 금 시세 ↗" 링크를 누르면 KRX 금시장 시세(원/g) 페이지가 새 탭으로 열립니다. "날씨 ↗"는 네이버 날씨(자료 제공 기상청)로 연결됩니다. 주소는 `js/config.js`의 `GOLD_URL`, `WEATHER_URL`에서 바꿉니다.
 
 ## 프로젝트 구조
 

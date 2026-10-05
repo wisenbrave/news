@@ -48,8 +48,8 @@ a { color: inherit; }
 .top { padding: 16px 0 4px; }
 .brand { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 h1 { margin: 0; font-size: 1.5rem; letter-spacing: -0.03em; white-space: nowrap; }
-.gold { display: flex; align-items: center; min-height: 40px; font-size: 0.8125rem; color: var(--muted); text-decoration: none; white-space: nowrap; }
-.brand-tools { display: flex; align-items: center; gap: 4px; }
+.ext { display: flex; align-items: center; min-height: 40px; padding: 0 4px; font-size: 0.8125rem; color: var(--muted); text-decoration: none; white-space: nowrap; } /* 날씨·금 시세 바로가기 */
+.brand-tools { display: flex; align-items: center; gap: 6px; }
 .theme { width: 40px; height: 40px; margin-right: -8px; border: 0; border-radius: 50%; background: none; font-size: 1.15rem; color: var(--muted); -webkit-tap-highlight-color: transparent; }
 .dateline { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; color: var(--muted); }
 #today { font-size: 1rem; font-weight: 700; color: var(--text); } /* 날짜·요일 강조 */
@@ -144,7 +144,7 @@ footer .signature { margin-top: 10px; }
 
 /* 아주 좁은 폰(320~359px): '새로고침' 글자 대신 아이콘만 */
 @media (max-width: 359px) {
-  .refresh-label { display: none; }
+  .refresh-label, .krx { display: none; }
   .refresh { font-size: 1.1rem; }
 }
 

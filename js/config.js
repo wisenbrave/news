@@ -38,6 +38,8 @@ export const KEYWORD_STOPWORDS = ['대통령', '정부', '오늘', '내일', '�
 
 // 상단 'KRX 금 시세' 링크: KRX 금시장 시세(원/g)를 폰에서 보기 쉬운 페이지 (네이버페이 증권 '국내 금')
 export const GOLD_URL = 'https://m.stock.naver.com/marketindex/metals/M04020000';
+// 상단 '날씨' 링크: 접속 위치의 현재 날씨·시간별 예보 (네이버 날씨, 자료 제공 기상청)
+export const WEATHER_URL = 'https://weather.naver.com/';
 
 // BIG KINDS는 검색어를 URL로 넘기는 공식 방식이 확인되지 않아(?query= 무시됨, 2026-10 확인)
 // 뉴스검색 기본 페이지를 열고 검색어는 클립보드에 복사한다.
