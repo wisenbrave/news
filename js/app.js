@@ -1,10 +1,12 @@
 import {
   TABS, EDITORIAL, OTHER, INTEREST_CATEGORIES, QUICK_SEARCHES, TODAY_KEYWORD_COUNT, KEYWORD_STOPWORDS, GOLD_URL, BIGKINDS_URL,
-  GROUP_SIMILARITY, GROUP_MAX_HOURS, EVIDENCE_SIMILARITY, EVIDENCE_LINK, TOP_NEWS_COUNT,
+  GROUP_SIMILARITY, GROUP_MAX_HOURS, EVIDENCE_SIMILARITY, EVIDENCE_LINK, TOP_NEWS_COUNT, TOP_NEWS_COUNT_WIDE,
 } from './config.js';
 
 const $ = id => document.getElementById(id);
 const HOUR = 36e5;
+const wide = matchMedia('(min-width: 1024px)'); // css/style.css의 PC 2단 기준과 같게
+const topCount = () => (wide.matches ? TOP_NEWS_COUNT_WIDE : TOP_NEWS_COUNT);
 const state = { articles: [], groups: [], keywords: [], outlets: {}, tab: '오늘', query: '', showAll: false, loading: true };
 
 const kstTime = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false });
@@ -285,11 +287,11 @@ function render() {
   if (state.tab !== EDITORIAL && !terms.length) {
     // '오늘'과 분야 탭 모두 같은 이슈 묶음·중요도 점수로 주요 뉴스를 먼저 보여준다
     const tabGroups = state.tab === '오늘' ? state.groups : state.groups.filter(g => groupInTab(g, state.tab));
-    const groups = state.showAll ? tabGroups : [...tabGroups].sort((a, b) => b.rating.score - a.rating.score).slice(0, TOP_NEWS_COUNT);
+    const groups = state.showAll ? tabGroups : [...tabGroups].sort((a, b) => b.rating.score - a.rating.score).slice(0, topCount());
     const name = state.tab === '오늘' ? '오늘' : state.tab;
     heading = state.showAll ? `${name} 전체 뉴스` : state.tab === '오늘' ? '오늘의 주요 뉴스' : `${name} 주요 뉴스`;
     html = groups.length ? `<ul class="list">${groups.map(groupItem).join('')}</ul>` : '';
-    if (tabGroups.length > TOP_NEWS_COUNT) {
+    if (tabGroups.length > topCount()) {
       $('show-all').hidden = false;
       $('show-all').textContent = state.showAll ? '주요 뉴스만 보기' : `전체 ${name} 뉴스 보기 (${list.length}건)`;
     }
@@ -364,5 +366,6 @@ $('list').addEventListener('click', e => {
   if (e.target.dataset.bk) openBigKinds(e.target.dataset.bk);
 });
 
+wide.addEventListener('change', render); // 창 크기를 바꾸면 보여줄 개수도 다시 맞춤
 render();
 loadNews();

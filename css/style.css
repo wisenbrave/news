@@ -1,20 +1,24 @@
 /* 모바일 우선: 기본 스타일은 스마트폰 기준, 넓은 화면은 맨 아래 @media에서 조정 */
+/* 다크 모드: 색은 아래 변수만 바꾸면 전체에 적용된다 */
 :root {
-  --text: #1a1a1a;
-  --muted: #6b6b6b;
-  --line: #e8e8e8;
-  --soft: #f4f4f2;
-  --accent: #1f4fd1;
+  --bg: #0b0b0c;        /* 배경 */
+  --surface: #161618;   /* 입력창·버튼 바탕 */
+  --text: #ececec;
+  --muted: #9a9a9e;
+  --line: #2a2a2d;
+  --soft: #1f1f22;      /* 빠른 검색·배지 바탕 */
+  --accent: #7aa7ff;    /* 링크·관련 기사 */
   --gutter: 16px;
+  color-scheme: dark;
   font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", "Noto Sans KR", sans-serif;
   color: var(--text);
-  background: #fff;
+  background: var(--bg);
   -webkit-text-size-adjust: 100%;
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.06);
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0.08);
 }
 
 * { box-sizing: border-box; }
-body { margin: 0 auto; max-width: 720px; padding: 0 var(--gutter) 40px; line-height: 1.5; background: #fff; word-break: keep-all; overflow-wrap: anywhere; }
+body { margin: 0 auto; max-width: 720px; padding: 0 var(--gutter) 40px; line-height: 1.5; background: var(--bg); word-break: keep-all; overflow-wrap: anywhere; }
 button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
 a { color: inherit; }
 
@@ -27,14 +31,15 @@ h1 { margin: 0; font-size: 1.5rem; letter-spacing: -0.03em; white-space: nowrap;
 .refresh { margin-left: auto; min-height: 40px; border: 0; background: none; padding: 0 0 0 8px; color: var(--muted); font-size: 0.875rem; white-space: nowrap; }
 .refresh:disabled { opacity: 0.4; }
 
-/* 검색: 스크롤해도 화면 위에 붙어 있음 */
-.search { position: sticky; top: 0; z-index: 2; margin: 0 calc(-1 * var(--gutter)); padding: 8px var(--gutter); background: #fff; }
+/* 검색: 폰에서는 스크롤해도 화면 위에 붙어 있음 */
+.search { position: sticky; top: 0; z-index: 2; margin: 0 calc(-1 * var(--gutter)); padding: 8px var(--gutter); background: var(--bg); }
 .search input {
   width: 100%; height: 50px; padding: 0 48px 0 18px;
   font-size: 1.0625rem; /* 16px 이상: iOS 입력 시 확대 방지 */
-  border: 1.5px solid #d5d5d5; border-radius: 25px; background: #fff; outline: none;
+  color: var(--text); border: 1.5px solid #3a3a3e; border-radius: 25px; background: var(--surface); outline: none;
   -webkit-appearance: none; appearance: none;
 }
+.search input::placeholder { color: #77777c; }
 .search input:focus { border-color: var(--text); }
 .search input::-webkit-search-cancel-button { display: none; }
 .clear { position: absolute; right: calc(var(--gutter) + 5px); top: 13px; width: 40px; height: 40px; border: 0; border-radius: 50%; background: none; font-size: 1.4rem; color: var(--muted); }
@@ -47,19 +52,19 @@ h1 { margin: 0; font-size: 1.5rem; letter-spacing: -0.03em; white-space: nowrap;
 .quick::-webkit-scrollbar, .tabs::-webkit-scrollbar { display: none; }
 .quick { margin-top: 2px; margin-bottom: 14px; }
 #hot { margin-bottom: 6px; }
-#hot button { background: #fff; box-shadow: inset 0 0 0 1px var(--line); } /* 자동 핵심어는 테두리로 구분 */
+#hot button { background: transparent; box-shadow: inset 0 0 0 1px #3a3a3e; } /* 자동 핵심어는 테두리로 구분 */
 .row-label { flex: none; align-self: center; margin-right: 2px; font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
 .quick button, .tabs button {
-  min-height: 40px; padding: 0 12px; border: 0; border-radius: 20px; background: var(--soft); font-size: 0.875rem; white-space: nowrap;
+  flex: none; min-height: 40px; padding: 0 12px; border: 0; border-radius: 20px; background: var(--soft); font-size: 0.875rem; white-space: nowrap;
 }
-.quick button[aria-pressed="true"], .tabs button[aria-pressed="true"] { background: var(--text); color: #fff; }
+.quick button[aria-pressed="true"], .tabs button[aria-pressed="true"] { background: var(--text); color: var(--bg); }
+#hot button[aria-pressed="true"] { box-shadow: none; }
 
 /* 카테고리 */
 .tabs { gap: 4px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
-.quick button, .tabs button { flex: none; }
 .tabs button { background: none; padding: 0 11px; }
 .tabs button span { margin-left: 2px; font-size: 0.8em; color: var(--muted); }
-.tabs button[aria-pressed="true"] span { color: #c9c9c9; }
+.tabs button[aria-pressed="true"] span { color: #555; }
 
 /* 기사 목록 */
 .list-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 20px 0 2px; }
@@ -69,12 +74,12 @@ h2 { margin: 0; font-size: 1.125rem; letter-spacing: -0.02em; }
 .list { list-style: none; margin: 0; padding: 0; }
 .item { padding: 14px 0; border-bottom: 1px solid var(--line); }
 .item .title { display: block; padding: 6px 0; margin: -6px 0; font-size: 1.0625rem; font-weight: 600; line-height: 1.45; letter-spacing: -0.01em; text-decoration: none; }
-.item .title:visited { color: #6a6a6a; }
+.item .title:visited { color: #8c8c90; }
 .meta { margin-top: 4px; font-size: 0.8125rem; color: var(--muted); }
 
 /* 주요 뉴스 근거 표시 */
 .why { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
-.why span { padding: 1px 8px; border-radius: 10px; background: var(--soft); font-size: 0.75rem; color: #444; }
+.why span { padding: 1px 8px; border-radius: 10px; background: var(--soft); font-size: 0.75rem; color: #c4c4c8; }
 
 details { margin-top: 4px; font-size: 0.875rem; }
 summary { display: block; padding: 8px 0; color: var(--accent); cursor: pointer; list-style: none; }
@@ -83,23 +88,29 @@ summary::after { content: " ▾"; }
 details[open] summary::after { content: " ▴"; }
 details ul { list-style: none; margin: 0; padding: 0 0 0 12px; border-left: 2px solid var(--line); }
 details li a { display: block; padding: 10px 0 2px; min-height: 36px; text-decoration: none; }
+details li a:visited { color: #8c8c90; }
 details li .meta { display: block; margin: 1px 0 4px; }
 
 /* 사설 */
 .paper h3 { margin: 22px 0 0; font-size: 0.875rem; color: var(--muted); }
 .mini { margin-left: 8px; min-height: 36px; padding: 0 4px; border: 0; background: none; font-size: 0.8125rem; color: var(--accent); }
 .paper .meta { margin-top: 0; }
-.excerpt { margin: 6px 0 2px; font-size: 0.9375rem; line-height: 1.6; color: #444; }
+.excerpt { margin: 6px 0 2px; font-size: 0.9375rem; line-height: 1.6; color: #b8b8bc; }
 
 .empty { padding: 40px 0; text-align: center; color: var(--muted); }
 
 .more { display: flex; flex-direction: column; align-items: stretch; gap: 8px; margin-top: 24px; }
 .link-button, .bigkinds { min-height: 48px; padding: 0 20px; border-radius: 24px; font-size: 0.9375rem; }
-.link-button { border: 1px solid var(--line); background: #fff; }
+.link-button { border: 1px solid #3a3a3e; background: var(--surface); }
 .bigkinds { border: 0; background: none; color: var(--accent); }
 .tip { margin: 0; font-size: 0.8125rem; color: var(--muted); text-align: center; }
 
-footer { margin-top: 40px; font-size: 0.75rem; color: #9a9a9a; text-align: center; }
+footer { margin-top: 40px; font-size: 0.75rem; color: #6c6c70; text-align: center; }
+
+/* 폰·태블릿: 왼쪽 영역 상자를 없애 1단으로 이어지게 (검색창이 화면 위에 붙도록) */
+@media (max-width: 1023px) {
+  .side { display: contents; }
+}
 
 /* 아주 좁은 폰(320~359px): '새로고침' 글자 대신 아이콘만 */
 @media (max-width: 359px) {
@@ -112,11 +123,32 @@ footer { margin-top: 40px; font-size: 0.75rem; color: #9a9a9a; text-align: cente
   .item .title:hover, details li a:hover { text-decoration: underline; }
 }
 
-/* 태블릿·PC */
+/* 태블릿 이상 */
 @media (min-width: 600px) {
   .top { padding-top: 32px; }
   h1 { font-size: 1.75rem; }
   .quick, .tabs { flex-wrap: wrap; overflow: visible; margin-left: 0; margin-right: 0; padding-left: 0; padding-right: 0; }
   .more { align-items: center; }
   .item .title { font-size: 1.125rem; }
+}
+
+/* PC: 2단 — 왼쪽은 검색·핵심어·메뉴(스크롤해도 고정), 오른쪽은 뉴스 목록 */
+@media (min-width: 1024px) {
+  body { max-width: 1280px; padding: 0 40px 40px; }
+  .layout { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 56px; align-items: start; }
+  .side { position: sticky; top: 0; max-height: 100vh; overflow-y: auto; scrollbar-width: thin; padding-bottom: 24px; }
+  .search { position: static; margin: 8px 0 12px; padding: 0; }
+  .clear { right: 5px; top: 5px; }
+  .row-label { flex-basis: 100%; margin: 4px 0 0; }   /* 이름표를 버튼 줄 위로 */
+  #hot { margin-bottom: 10px; }
+  /* 메뉴: 세로 목록, 건수는 오른쪽 끝 */
+  .tabs { flex-direction: column; gap: 2px; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 0; }
+  .tabs button { display: flex; justify-content: space-between; align-items: center; border-radius: 10px; padding: 0 14px; font-size: 0.9375rem; }
+  .tabs button:hover { background: var(--soft); }
+  .tabs button[aria-pressed="true"]:hover { background: var(--text); }
+  .news { padding-top: 36px; }
+  .list-head { margin-top: 0; }
+  .item { padding: 12px 0; }
+  .item .title { font-size: 1.0625rem; }
+  footer { margin-left: 396px; text-align: left; }
 }

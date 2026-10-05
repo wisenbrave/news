@@ -56,4 +56,5 @@ export const GROUP_MAX_HOURS = 12;
 export const EVIDENCE_SIMILARITY = 0.12;
 export const EVIDENCE_LINK = 0.1;
 
-export const TOP_NEWS_COUNT = 15; // '오늘'·분야 탭에 먼저 보여줄 주요 뉴스 수
+export const TOP_NEWS_COUNT = 15;      // '오늘'·분야 탭에 먼저 보여줄 주요 뉴스 수 (폰)
+export const TOP_NEWS_COUNT_WIDE = 25; // PC 2단 화면에서는 더 많이
